@@ -1,6 +1,6 @@
 # audio-check-test-version
 audio-check
-<!DOCTYPE html>
+<測試模式>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
