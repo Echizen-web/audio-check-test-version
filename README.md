@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AudioCheck - 專業操作版</title>
+    <title>AudioCheck - 高效操作版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --bg: #131314; --sidebar: #1e1f20; --border: #444746; --blue: #8ab4f8; }
@@ -172,7 +172,6 @@
                 </div>`;
         }
 
-        // --- 名稱編輯功能 ---
         function openEditNameModal() {
             const p = projects.find(proj => proj.id === activeId);
             document.getElementById('editNameInput').value = p.name;
@@ -187,7 +186,6 @@
             }
         }
 
-        // --- 新增項目按鈕功能 ---
         function promptAddItem(key) {
             const text = prompt("請輸入新檢查項目：");
             if (text && text.trim()) {
@@ -196,7 +194,6 @@
             }
         }
 
-        // --- 範例選擇預覽 ---
         function selectTemplate(name) {
             const t = config.templates[name];
             tempItems = { pre: t.pre.map(text => ({ text, active: true })), mid: t.mid.map(text => ({ text, active: true })), post: t.post.map(text => ({ text, active: true })) };
@@ -212,9 +209,10 @@
                 html += `<div class="bg-[#1a1b1c] p-4 rounded-xl border border-[#333537]">
                     <div class="flex justify-between items-center mb-4"><span class="text-xs text-blue-400 font-bold">${label}</span><button onclick="addTempItem('${k}')" class="text-[10px] bg-[#333537] px-2 py-1 rounded">+ 項目</button></div>`;
                 tempItems[k].forEach((item, i) => {
-                    html += `<div class="flex items-center gap-3 mb-2">
+                    html += `<div class="flex items-center gap-3 mb-group">
                         <input type="checkbox" ${item.active?'checked':''} onchange="tempItems.${k}[${i}].active=this.checked">
                         <input type="text" value="${item.text}" oninput="tempItems.${k}[${i}].text=this.value" class="bg-transparent border-b border-transparent focus:border-[#8ab4f8] outline-none text-sm flex-1">
+                        <button onclick="tempItems.${k}.splice(${i},1); renderPreviewList();" class="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-500 text-xs">✕</button>
                     </div>`;
                 });
                 html += `</div>`;
@@ -224,7 +222,6 @@
 
         function addTempItem(k) { tempItems[k].push({ text: "新項目", active: true }); renderPreviewList(); }
 
-        // --- 核心工具 ---
         function switchProject(id) { activeId = id; renderSidebar(); renderContent(); if(window.innerWidth < 1024) toggleSidebar(); }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
         function openNewProjectModal() { document.getElementById('projectModal').classList.remove('hidden'); document.getElementById('newProjName').value=''; document.getElementById('templatePreview').classList.add('hidden'); }
@@ -232,9 +229,16 @@
         function showAdmin() { document.getElementById('adminPanel').classList.remove('hidden'); }
         function hideAdmin() { document.getElementById('adminPanel').classList.add('hidden'); }
         function toggleItem(k, i) { projects.find(p=>p.id===activeId).checklist[k][i].done = !projects.find(p=>p.id===activeId).checklist[k][i].done; saveData(); renderContent(); }
-        function removeItem(k, i) { if(confirm('刪除此項？')){ projects.find(p=>p.id===activeId).checklist[k].splice(i, 1); saveData(); renderContent(); } }
+        
+        // 修正點：刪除個別項目不再跳詢問框
+        function removeItem(k, i) { 
+            projects.find(p=>p.id===activeId).checklist[k].splice(i, 1); 
+            saveData(); 
+            renderContent(); 
+        }
+
         function saveData() { localStorage.setItem('audio_projects', JSON.stringify(projects)); localStorage.setItem('audio_config', JSON.stringify(config)); }
-        function deleteProject(id) { if(confirm('刪除案子？')){ projects=projects.filter(p=>p.id!==id); activeId=projects.length?projects[0].id:null; saveData(); renderSidebar(); renderContent(); } }
+        function deleteProject(id) { if(confirm('刪除整場案子？')){ projects=projects.filter(p=>p.id!==id); activeId=projects.length?projects[0].id:null; saveData(); renderSidebar(); renderContent(); } }
         function confirmCreateProject() {
             const name = document.getElementById('newProjName').value || "未命名";
             const newP = { id: Date.now(), name, checklist: { pre: tempItems.pre.filter(i=>i.active).map(i=>({text:i.text, done:false})), mid: tempItems.mid.filter(i=>i.active).map(i=>({text:i.text, done:false})), post: tempItems.post.filter(i=>i.active).map(i=>({text:i.text, done:false})) } };
